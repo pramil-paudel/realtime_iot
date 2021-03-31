@@ -23,7 +23,7 @@
 
 ## Environment Setup:
 - Run `sensor_1_tmp.py` using `python3 main/kafka/producer/sensor_1_tmp.py`
-- Run `spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 main/spark-streaming/demo.py.`
+- Run `spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1,mysql:mysql-connector-java:8.0.23 realtime_average_temperature.py`
 
 ## Check RUNNING JOBS In 
 `http://localhost:4040/jobs/`

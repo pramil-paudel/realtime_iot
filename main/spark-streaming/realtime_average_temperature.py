@@ -6,17 +6,18 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import asc, desc, col, from_json, to_timestamp, window
 from pyspark.sql.types import StructType, LongType, DoubleType, StringType
 from kafka import KafkaConsumer
+from pyspark.sql import functions as F
 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("StreamingPipeline").getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
 
-    kafka_topic_input = "test"
-    consumer = KafkaConsumer(kafka_topic_input)
+    kafka_topic_input = "temperature_and_humidity"
+    consumer = KafkaConsumer(kafka_topic_input, bootstrap_servers="192.168.0.23:9092")
 
     df = (
         spark.readStream.format("kafka")
-            .option("kafka.bootstrap.servers", "localhost:9092")
+            .option("kafka.bootstrap.servers", "192.168.0.23:9092")
             .option("subscribe", kafka_topic_input)
             .load()
     )
@@ -28,9 +29,7 @@ if __name__ == "__main__":
             .add("device_id", LongType())
             .add("timestamp", StringType())
             .add("temperature", DoubleType())
-            .add("x", DoubleType())
-            .add("y", DoubleType())
-            .add("z", DoubleType())
+            .add("humidity", DoubleType())
     )
 
     df_parsed = df_str.select(from_json(df_str.value, schema).alias("data"))
@@ -61,4 +60,18 @@ if __name__ == "__main__":
     query_console = (
         df_final.writeStream.outputMode("complete").format("console").start()
     )
+    #
+
+    def write_data_to_mysql(df,epoch_id):
+        df.write.format('jdbc').options(
+            url='jdbc:mysql://localhost:3306/iot',
+            driver='com.mysql.jdbc.Driver',
+            dbtable='temperature',
+            user='root',
+            password='').mode('append').save()
+
+    query = df_final.writeStream.outputMode("complete").foreachBatch(write_data_to_mysql).start()
+
+    query.awaitTermination()
+
     query_console.awaitTermination()

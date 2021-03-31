@@ -2,7 +2,5 @@
   "device_id": 3,
   "timestamp": "2019-10-01 10:33:00",
   "temperature": 45.0,
-  "x": -0.01,
-  "y": 9.287,
-  "z": 0.988
+  "humidity" : 78
 }
